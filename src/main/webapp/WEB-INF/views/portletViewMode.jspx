@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page"
+		  xmlns:c="http://java.sun.com/jsp/jstl/core"
+		  xmlns:portlet="http://xmlns.jcp.org/portlet_3_0"
+		  version="2.1">
+    <jsp:directive.page contentType="text/html" pageEncoding="UTF-8" />
+    <portlet:defineObjects />
+    <portlet:actionURL name="CambiarNombreAction" var="CambiarNombre" />
+    <portlet:actionURL name="AnadirPruebaAction" var="AnadirPrueba" />
+    <portlet:actionURL name="GuardarPruebasAction" var="GuardarPruebas" />
+    <portlet:actionURL name="BorrarPruebasAction" var="BorrarPruebas" />    
+    <portlet:actionURL name="ArchivoPruebasAction" var="ArchivoPruebas" />
+    <portlet:actionURL name="ArchivoAlumnosAction" var="ArchivoAlumnos" />
+    <portlet:actionURL name="ArchivoNotasAction" var="ArchivoNotas" />
+    <portlet:actionURL name="PuntuarPruebasAction" var="PuntuarPruebas" />
+    <portlet:resourceURL var="DescargarArchivoPruebas" id="DescargarArchivoPruebas"/>
+    <portlet:resourceURL var="DescargarArchivoAlumnos" id="DescargarArchivoAlumnos"/>
+    <portlet:resourceURL var="DescargarArchivoNotas" id="DescargarArchivoNotas"/>
+    <div id="Definicion">         
+        <br/><div style="font-size:25px;">Definición de la asignatura:</div><br/>    
+    <div id="zonaNombre">
+        Nombre de la asignatura: ${renderRequest.getPortletSession().getAttribute('errorNota')}
+        <br/><div style="font-size:20px;">${renderRequest.getPortletSession().getAttribute('asignatura').getNombre()}</div>
+    <form action="${CambiarNombre}" method="POST" enctype="multipart/form-data">
+        <c:if test = "${renderRequest.getPortletSession().getAttribute('asignatura').getNombre() == null or renderRequest.getPortletSession().getAttribute('asignatura').getNombre().equals('')}">
+            <br/><input name="nombre" type="text"></input> 
+        </c:if><br/>
+        <br/><input value="Cambiar nombre" type="submit"></input> 
+        <br/>
+    </form> 
+    </div>
+    <div id="zonaAnadirPrueba">
+        <br/><div style="color:#FF0000;">${renderRequest.getPortletSession().getAttribute('errorGuardar')}</div>
+        <br/>Pruebas de la asignatura:<br/>
+        <br/><div style="font-style: italic;">Una prueba por línea siguiendo el siguiente formato: <br/>
+            nombre de la prueba; porcentaje de la nota que le corresponde (número entero sobre 100); nota mínima para 
+        superar la prueba (número entero sobre 100); "apto/no apto" si la asignatura es de tipo apto/no apto; 
+        "obligatoria" si la asignatura es obligatoria</div>
+        <form action="${ArchivoPruebas}" method="POST" enctype="multipart/form-data">
+                    <br/><input name="fichero" type="file" title="pruebas"></input>
+                    <input type="submit" value="Importar" name="archivoPruebas"></input>
+                    <br/><a href="${DescargarArchivoPruebas}">Exportar pruebas</a>
+                    <br/><div style="color:#FF0000;">${renderRequest.getPortletSession().getAttribute('errorSubidaPruebas')}</div>
+        </form>
+    <c:if test = "${!renderRequest.getPortletSession().getAttribute('asignatura').isListaCompleta()}">
+        <form action="${AnadirPrueba}" method="POST" enctype="multipart/form-data">
+            <br/>Añadir prueba: 
+            <div>
+                <br/>   Nombre:
+                <br/>   <input name="nombrePrueba" type="text" title="Nombre"></input>
+                <br/>
+                <br/>   Peso en la nota final de la asignatura, sobre 100:
+                <br/>   <input name="peso" type="text" title="Peso en la nota final"></input>
+                <div style="color:#FF0000;">${renderRequest.getPortletSession().getAttribute('errorPeso')}</div>
+                <br/>   Nota mínima sobre 100:
+                <br/>   <input name="notaMinima" type="text" label="Nota mínima"></input>
+                <div style="color:#FF0000;">${renderRequest.getPortletSession().getAttribute('errorNota')}</div>
+                <br/>   De tipo Apto/No apto:
+                <br/>   <input name="tipo" type="radio" value="true">Sí</input>
+                        <input name="tipo" type="radio" value="false">No</input>
+                        <br/>
+                <br/>   Obligatoria:
+                <br/>   <input name="obligatoria" type="radio" value="true">Sí</input>
+                        <input name="obligatoria" type="radio" value="false">No</input>
+                        <br/>
+                <br/>
+                    <input value="Añadir prueba" type="submit"></input>
+                    <br/>
+            </div>
+        </form>
+    </c:if>
+    </div>
+    <div id="zonaPruebas">
+    <table>
+        <c:if test = "${renderRequest.getPortletSession().getAttribute('asignatura').getPruebas() != null and !renderRequest.getPortletSession().getAttribute('asignatura').getPruebas().isEmpty()}">
+        <tr>
+            <td>Nombre de la prueba</td>
+            <td> | </td>
+            <td>Peso de la prueba</td>
+            <td> | </td>
+            <td>Nota mínima</td>
+            <td> | </td>
+            <td>Tipo Apto/No apto</td>
+            <td> | </td>
+            <td>Obligatoria</td>
+        </tr>
+        </c:if>
+      <c:forEach var='item' items="${renderRequest.getPortletSession().getAttribute('asignatura').getPruebas()}">
+        <tr>
+            <td>${item.nombre}</td>
+            <td> | </td>
+            <td>${item.peso} %</td>
+            <td> | </td>
+            <td>${item.notaMinima} / 100</td>
+            <td> | </td>                
+            <td><c:choose>
+                    <c:when test = "${item.tipoAptoNoApto}">Sí</c:when>
+                    <c:otherwise>No</c:otherwise>
+                </c:choose>
+            </td>
+            <td> | </td>
+            <td><c:choose>
+                    <c:when test = "${item.obligatoria}">Sí</c:when>
+                    <c:otherwise>No</c:otherwise>
+                </c:choose>
+            </td>
+        </tr>
+      </c:forEach>
+    </table>
+    <c:if test = "${!renderRequest.getPortletSession().getAttribute('asignatura').isListaCompleta()}">
+        <form action="${GuardarPruebas}" method="POST" enctype="multipart/form-data">
+            <input value="Guardar pruebas" type="submit"></input>
+        </form> 
+    </c:if>
+    <form action="${BorrarPruebas}" method="POST" enctype="multipart/form-data">
+        <input value="Borrar todas las pruebas" type="submit"></input>
+    </form> 
+    </div>
+        
+    </div>
+    <c:if test = "${renderRequest.getPortletSession().getAttribute('asignatura').isListaCompleta()}">
+    <div id="zonaAlumnos">
+        <br/><div style="font-size:25px;">Alumnos de la asignatura:</div>
+        <form action="${ArchivoAlumnos}" method="POST" enctype="multipart/form-data">
+                    <br/><input name="fichero" type="file" title="alumnos"></input>
+                    <input type="submit" value="Importar" name="archivoAlumnos"></input>
+                    <br/><a href="${DescargarArchivoAlumnos}">Exportar alumnos</a>
+                    <br/><div style="color:#FF0000;">${renderRequest.getPortletSession().getAttribute('errorSubidaAlumnos')}</div>
+        </form>
+        <c:if test = "${renderRequest.getPortletSession().getAttribute('asignatura').getAlumnos() != null and !renderRequest.getPortletSession().getAttribute('asignatura').getAlumnos().isEmpty()}">
+        <br/><div style="color:#FF0000;">${renderRequest.getPortletSession().getAttribute('errorNotasAlumnos')}</div>        
+      <c:forEach var='alumno' items="${renderRequest.getPortletSession().getAttribute('asignatura').getAlumnos()}">
+        <form action="${PuntuarPruebas}" method="POST" enctype="multipart/form-data">
+            <br/>Alumno nº ${alumno.numero} - ${alumno.nombre}
+            <br/>Nota final: ${alumno.nota} / 100<br/><br/>
+            <table>
+            <div>
+                <input type="hidden" name="numero" value="${alumno.numero}"/>
+                <thead>
+                <tr>
+                <c:forEach var='prueba' items="${renderRequest.getPortletSession().getAttribute('asignatura').getPruebas()}">
+                    <td>${prueba.nombre}:</td>
+                </c:forEach>
+                </tr>
+                </thead>
+                <tbody>
+                <c:if test = "${alumno.getNotasPruebas() != null and !alumno.getNotasPruebas().isEmpty()}">
+                <tr>
+                <c:forEach var='p' items="${renderRequest.getPortletSession().getAttribute('asignatura').getPruebas()}">
+                    <td><c:choose>
+                    <c:when test = "${p.tipoAptoNoApto}">
+                        <c:choose>
+                            <c:when test = "${alumno.getNotaPrueba(p.orden) > 0}">
+                                Apto
+                            </c:when>
+                            <c:otherwise>No apto</c:otherwise>
+                        </c:choose>
+                    </c:when>
+                    <c:otherwise>
+                    ${alumno.getNotaPrueba(p.orden)}/100</c:otherwise>
+                    </c:choose></td>
+                </c:forEach>
+                </tr>
+                </c:if>
+                <tr>Edición de las notas de cada prueba:
+                <c:forEach var='p' items="${renderRequest.getPortletSession().getAttribute('asignatura').getPruebas()}">
+                    <td><input name="${p.orden}" type="text" size="5"></input></td>
+                </c:forEach>
+                </tr>
+                </tbody>
+            </div>
+            </table> 
+            <input type="submit" value="Puntuar pruebas" ></input>  
+        </form>
+      </c:forEach>                   
+        <form action="${ArchivoNotas}" method="POST" enctype="multipart/form-data">
+                    <br/><input name="fichero" type="file" title="notas"></input>
+                    <input type="submit" value="Importar" name="archivoNotas"></input>
+                    <br/><a href="${DescargarArchivoNotas}">Exportar notas</a>
+                    <br/><div style="color:#FF0000;">${renderRequest.getPortletSession().getAttribute('errorSubidaNotas')}</div>
+        </form>     
+        </c:if>
+    </div>
+    </c:if>
+</jsp:root>
